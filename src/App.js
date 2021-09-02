@@ -68,7 +68,9 @@ const App = () => {
               }}></div>
             <div
               className="round-theme"
-              onClick={() => setTheme({ color: "white", background: "grey" })}
+              onClick={() =>
+                setTheme({ color: "white", background: "rgb(20,20,20)" })
+              }
               style={{ background: "#333333" }}></div>
           </div>
         </div>
