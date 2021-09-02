@@ -1,33 +1,41 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useEffect } from "react";
 import Joke from "./Joke";
 
-const Main = () => {
-  const reducer = (data, update) => {
-    return {
-      ...data,
-      ...update,
-    };
-  };
+import { useDispatch, useSelector } from "react-redux";
 
-  const [data, dispatch] = useReducer(reducer, { active: "random" });
+const Main = () => {
+  const dispatch = useDispatch();
+
+  const active = useSelector((store) => store.active);
+  const categories = useSelector((store) => store.categories);
+  const searchVal = useSelector((store) => store.searchVal);
+  const category = useSelector((store) => store.category);
+  const joke = useSelector((store) => store.joke);
 
   useEffect(() => {
     fetch(`https://api.chucknorris.io/jokes/categories`)
       .then((response) => response.json())
-      .then((categories) => dispatch({ categories }));
+      .then((categories) =>
+        dispatch({ type: "INIT_CATEGORIES", payload: categories })
+      );
   }, []);
 
-  const selectRadio = (e) => dispatch({ active: e.target.value });
+  const selectRadio = (e) =>
+    dispatch({ type: "SWITCH_ACTIVE", payload: e.target.value });
 
   const selectCategory = (e) =>
-    dispatch({ category: e.target.getAttribute("data-category") });
+    dispatch({
+      type: "SET_CATEGORY",
+      payload: e.target.getAttribute("data-category"),
+    });
 
-  const handleSearch = (e) => dispatch({ searchVal: e.target.value });
+  const handleSearch = (e) =>
+    dispatch({ type: "UPDATE_SEARCHVAL", payload: e.target.value });
 
   const searchByCategory = (category) => {
     fetch(`https://api.chucknorris.io/jokes/random?category=${category}`)
       .then((response) => response.json())
-      .then((joke) => dispatch({ joke }));
+      .then((joke) => dispatch({ type: "INIT_JOKE", payload: joke }));
   };
 
   const searchByRequest = (request) => {
@@ -35,22 +43,18 @@ const Main = () => {
       .then((response) => response.json())
       .then((joke) => {
         console.log(joke);
-        dispatch({
-          joke: joke.result[Math.floor(Math.random() * joke.result.length - 1)],
-          searchVal: "",
-        });
+        dispatch({ type: "INIT_JOKE", payload: joke });
+        dispatch({ type: "CLEAR_SEARCHVAL", payload: "" });
       });
   };
 
   const getRandomJoke = () => {
     fetch(`https://api.chucknorris.io/jokes/random`)
       .then((response) => response.json())
-      .then((joke) => dispatch({ joke }));
+      .then((joke) => dispatch({ type: "INIT_JOKE", payload: joke }));
   };
 
   const getJoke = () => {
-    const { active, category, searchVal } = data;
-
     return active === "search" && searchVal
       ? searchByRequest(searchVal)
       : active === "category"
@@ -68,7 +72,7 @@ const Main = () => {
             type="radio"
             value="random"
             onChange={selectRadio}
-            checked={data.active === "random"}
+            checked={active === "random"}
           />
           <span>Random</span>
         </div>
@@ -77,17 +81,17 @@ const Main = () => {
             type="radio"
             value="category"
             onChange={selectRadio}
-            checked={data.active === "category"}
+            checked={active === "category"}
           />
           <span>From categories</span>
         </div>
-        {data.active === "category" && data.categories && (
+        {active === "category" && categories && (
           <div className="category-wrapper row">
-            {data.categories.map((item, index) => (
+            {categories.map((item, index) => (
               <button
                 key={index}
                 className={`category row centered ${
-                  data.category === item && "active"
+                  category === item && "active"
                 }`}
                 data-category={item}
                 onClick={selectCategory}>
@@ -101,21 +105,21 @@ const Main = () => {
             type="radio"
             value="search"
             onChange={selectRadio}
-            checked={data.active === "search"}
+            checked={active === "search"}
           />
           <span>Search</span>
         </div>
-        {data.active === "search" && (
+        {active === "search" && (
           <input
             type="text"
             id="search"
             onChange={handleSearch}
-            value={data.searchVal || ""}
+            value={searchVal || ""}
           />
         )}
       </div>
       <button onClick={getJoke}>Get joke</button>
-      {data.joke && <Joke joke={data.joke} />}
+      {joke && <Joke joke={joke} />}
     </div>
   );
 };
