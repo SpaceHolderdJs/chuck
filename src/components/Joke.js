@@ -2,24 +2,29 @@ import React, { useContext } from "react";
 
 import { likeListOperations } from "../App";
 
+import { useSelector, useDispatch } from "react-redux";
+
 const Joke = ({ joke }) => {
   const { categories, updated_at, icon_url, id, value } = joke;
 
-  const { addToLikeList, removeFromLikeList, findInLikeList } =
-    useContext(likeListOperations);
+  const { findInLikeList } = useContext(likeListOperations);
+
+  const dispatch = useDispatch();
 
   return (
     <div className="joke column centered">
       {findInLikeList(joke) ? (
         <div
-          onClick={() => removeFromLikeList(joke)}
+          onClick={() =>
+            dispatch({ type: "REMOVE_FROM_LIKELIST", payload: joke })
+          }
           className="row centered icon-wrapper"
           style={{ left: "40%", top: "5%" }}>
           <img src="/heart.png" alt="" className="icon heart-icon" />
         </div>
       ) : (
         <div
-          onClick={() => addToLikeList(joke)}
+          onClick={() => dispatch({ type: "ADD_TO_LIKELIST", payload: joke })}
           className="row centered icon-wrapper"
           style={{ left: "40%", top: "5%" }}>
           <img
@@ -41,7 +46,7 @@ const Joke = ({ joke }) => {
           <span style={{ color: "lightslategray" }}>
             Last update: {new Date(Date.parse(updated_at)).getHours()} hours
           </span>
-          {categories[0] && (
+          {categories && categories[0] && (
             <div className="category active row centered">
               <span>{categories[0]}</span>
             </div>
